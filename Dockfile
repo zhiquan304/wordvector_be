@@ -1,0 +1,15 @@
+FROM golang
+
+ADD ./annoy /annoy
+
+WORKDIR /annoy
+RUN apt-get update \
+	&& apt-get install -y swig \
+	&& swig -go -intgosize 64 -cgo -c++ src/annoygomodule.i \
+	&& mkdir -p $GOPATH/src/annoyindex \
+	&& cp src/annoygomodule_wrap.cxx src/annoyindex.go src/annoygomodule.h src/annoylib.h src/kissrandom.h test/annoy_test.go $GOPATH/src/annoyindex \
+	&& go get github.com/huichen/wordvector_be \
+	&& cd $GOPATH/src/github.com/huichen/wordvector_be \
+	&& go build
+WORKDIR /go/src/github.com/huichen/wordvector_be/
+CMD ["/bin/bash", "-c", "wordvector_be"]
